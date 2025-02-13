@@ -5,14 +5,19 @@
 //  Created by Grant Isom on 1/16/25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @main
 struct AI_Dream_JournalApp: App {
+    init() {
+        requestNotificationPermissions()
+    }
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
+            Alarm.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -28,5 +33,14 @@ struct AI_Dream_JournalApp: App {
             ContentView()
         }
         .modelContainer(sharedModelContainer)
+    }
+
+    private func requestNotificationPermissions() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
+            if let error = error {
+                print("Error requesting notification permissions: \(error.localizedDescription)")
+            }
+            print("Notifications granted: \(granted)")
+        }
     }
 }
