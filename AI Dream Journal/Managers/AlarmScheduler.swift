@@ -6,6 +6,7 @@
 //
 
 import UserNotifications
+import SwiftData
 
 struct AlarmScheduler {
     static func scheduleAlarm(_ alarm: Alarm) {
@@ -13,7 +14,10 @@ struct AlarmScheduler {
         content.title = alarm.label
         content.body = "Tap here to record a new dream entry!"
         content.sound = UNNotificationSound.default
-
+        
+        // Add a category identifier that will be used to show custom actions
+        content.categoryIdentifier = "DREAM_ALARM"
+        
         // Convert alarm time (Date) to hours/minutes
         let calendar = Calendar.current
         let dateComponents = calendar.dateComponents([.hour, .minute], from: alarm.time)
@@ -39,5 +43,31 @@ struct AlarmScheduler {
     static func cancelAlarm(_ alarm: Alarm) {
         UNUserNotificationCenter.current()
             .removePendingNotificationRequests(withIdentifiers: [alarm.id.uuidString])
+    }
+    
+    static func setupNotificationCategories() {
+        // Create actions
+        let recordAction = UNNotificationAction(
+            identifier: "RECORD_DREAM",
+            title: "Record Dream",
+            options: .foreground
+        )
+        
+        let dismissAction = UNNotificationAction(
+            identifier: "DISMISS",
+            title: "Dismiss",
+            options: .destructive
+        )
+        
+        // Create category
+        let dreamCategory = UNNotificationCategory(
+            identifier: "DREAM_ALARM",
+            actions: [recordAction, dismissAction],
+            intentIdentifiers: [],
+            options: []
+        )
+        
+        // Register the category
+        UNUserNotificationCenter.current().setNotificationCategories([dreamCategory])
     }
 }

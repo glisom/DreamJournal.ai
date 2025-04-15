@@ -10,13 +10,15 @@ import SwiftUI
 
 @main
 struct AI_Dream_JournalApp: App {
+    @State private var showJournalEntryOnLaunch = false
+    
     init() {
-        requestNotificationPermissions()
+        setupNotifications()
     }
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Dream.self,
             Alarm.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
@@ -30,17 +32,74 @@ struct AI_Dream_JournalApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(showJournalEntryOnLaunch: $showJournalEntryOnLaunch)
+                .onAppear {
+                    handleLaunchFromNotification()
+                }
         }
         .modelContainer(sharedModelContainer)
     }
+    
+    private func setupNotifications() {
+        requestNotificationPermissions()
+        AlarmScheduler.setupNotificationCategories()
+        
+        // Set up delegate to handle notification actions
+        UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
+    }
 
     private func requestNotificationPermissions() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if let error = error {
                 print("Error requesting notification permissions: \(error.localizedDescription)")
             }
             print("Notifications granted: \(granted)")
         }
+    }
+    
+    private func handleLaunchFromNotification() {
+        // Check if the app was launched from a notification
+        if let launchOptions = ProcessInfo.processInfo.environment["UIApplicationLaunchOptionsRemoteNotificationKey"] {
+            showJournalEntryOnLaunch = true
+        }
+    }
+}
+
+// Create a notification delegate to handle notification actions
+class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    static let shared = NotificationDelegate()
+    
+    // This is called when a notification is received while the app is in the foreground
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        // Allow notifications to be shown in foreground
+        completionHandler([.banner, .sound])
+    }
+    
+    // This is called when the user interacts with a notification
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let actionIdentifier = response.actionIdentifier
+        
+        switch actionIdentifier {
+        case "RECORD_DREAM":
+            // Handle the record dream action
+            NotificationCenter.default.post(name: .dreamAlarmFired, object: nil)
+            
+        case UNNotificationDefaultActionIdentifier:
+            // User tapped the notification itself
+            NotificationCenter.default.post(name: .dreamAlarmFired, object: nil)
+            
+        default:
+            break
+        }
+        
+        completionHandler()
     }
 }

@@ -51,6 +51,10 @@ struct AlarmView: View {
             .sheet(isPresented: $showAddAlarmSheet) {
                 AddAlarmView()
             }
+            .safeAreaInset(edge: .bottom) {
+                // Add spacing for the floating tab bar
+                Spacer().frame(height: 70)
+            }
         }
     }
 
