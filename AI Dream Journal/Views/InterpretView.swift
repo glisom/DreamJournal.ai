@@ -187,29 +187,53 @@ struct InterpretView: View {
                 
                 Spacer()
                 
-                Image(systemName: "sparkles")
-                    .foregroundColor(.purple)
+                HStack(spacing: 4) {
+                    Image(systemName: "brain")
+                        .foregroundColor(.purple)
+                    
+                    Text("On-Device AI")
+                        .font(.caption)
+                        .foregroundColor(.purple)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.purple.opacity(0.1))
+                )
             }
             .padding(.horizontal)
             
             Text(text)
                 .font(.body)
                 .padding()
-                .background(Color.purple.opacity(0.1))
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.purple.opacity(0.1))
+                )
                 .cornerRadius(10)
                 .padding(.horizontal)
+            
+            // Theme tags based on dream content
+            if let dream = selectedDream {
+                ThemeTagsView(dreamContent: dream.content)
+                    .padding(.horizontal)
+            }
             
             if let dream = selectedDream, !dream.isInterpreted {
                 Button {
                     saveDreamInterpretation(text)
                 } label: {
-                    Text("Save Interpretation")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.purple)
-                        .cornerRadius(10)
+                    HStack {
+                        Image(systemName: "square.and.arrow.down")
+                        Text("Save Interpretation")
+                            .font(.headline)
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.purple)
+                    .cornerRadius(10)
                 }
                 .padding()
             }
@@ -225,17 +249,43 @@ struct InterpretView: View {
                 
                 Spacer()
                 
-                Image(systemName: "moon.stars.fill")
-                    .foregroundColor(.indigo)
+                HStack(spacing: 4) {
+                    Image(systemName: "brain.head.profile")
+                        .foregroundColor(.indigo)
+                    
+                    Text("On-Device AI")
+                        .font(.caption)
+                        .foregroundColor(.indigo)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.indigo.opacity(0.1))
+                )
             }
             .padding(.horizontal)
             
             Text(text)
                 .font(.body)
                 .padding()
-                .background(Color.indigo.opacity(0.1))
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.indigo.opacity(0.1))
+                )
                 .cornerRadius(10)
                 .padding(.horizontal)
+            
+            // Celestial symbols
+            HStack(spacing: 16) {
+                ForEach(["moon.stars.fill", "sparkles", "sun.max.fill", "cloud.moon.fill", "moon.fill"], id: \.self) { symbol in
+                    Image(systemName: symbol)
+                        .font(.title2)
+                        .foregroundColor(.indigo.opacity(0.7))
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .center)
         }
     }
     
@@ -368,6 +418,108 @@ struct FeatureRow: View {
             
             Text(text)
                 .font(.body)
+        }
+    }
+}
+
+// Theme tags view to display dream themes
+struct ThemeTagsView: View {
+    let dreamContent: String
+    @State private var themes: [String] = []
+    
+    init(dreamContent: String) {
+        self.dreamContent = dreamContent
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Key Themes")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            if themes.isEmpty {
+                // Extract themes on appear
+                Text("Analyzing themes...")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .onAppear {
+                        extractThemes()
+                    }
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(themes, id: \.self) { theme in
+                            Text(theme)
+                                .font(.caption)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(
+                                    Capsule()
+                                        .fill(themeColor(for: theme).opacity(0.15))
+                                )
+                                .foregroundColor(themeColor(for: theme))
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private func extractThemes() {
+        // Simple theme extraction for prototype
+        // This would be replaced by the actual NL processing in production
+        let words = dreamContent.lowercased().components(separatedBy: .whitespacesAndNewlines)
+        
+        // Common dream themes to detect
+        let themeCategories = [
+            "water": ["water", "ocean", "sea", "river", "lake", "swim", "flood", "rain"],
+            "flying": ["fly", "flying", "float", "falling", "jumping", "height", "sky"],
+            "chase": ["chase", "run", "escape", "follow", "pursued", "hunting"],
+            "family": ["family", "mother", "father", "sister", "brother", "child", "parent"],
+            "travel": ["journey", "travel", "path", "road", "car", "trip", "destination"],
+            "home": ["house", "home", "room", "building", "door", "window"],
+            "fear": ["fear", "afraid", "scary", "threat", "danger", "dark", "hide"]
+        ]
+        
+        var detectedThemes: [String] = []
+        
+        // Check for each theme category
+        for (category, keywords) in themeCategories {
+            for keyword in keywords {
+                if words.contains(keyword) {
+                    detectedThemes.append(category)
+                    break
+                }
+            }
+        }
+        
+        // If we found themes, use them, otherwise provide generic ones
+        if !detectedThemes.isEmpty {
+            themes = Array(Set(detectedThemes)).prefix(5).sorted()
+        } else {
+            themes = ["symbolism", "subconscious", "memory"]
+        }
+    }
+    
+    private func themeColor(for theme: String) -> Color {
+        // Assign consistent colors to themes
+        switch theme {
+        case "water":
+            return .blue
+        case "flying":
+            return .cyan
+        case "chase":
+            return .orange
+        case "family":
+            return .green
+        case "travel":
+            return .purple
+        case "home":
+            return .indigo
+        case "fear":
+            return .red
+        default:
+            return .gray
         }
     }
 }

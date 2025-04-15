@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var themeSettings: ThemeSettings
     @State private var selectedTab: Tab = .journal
     @Binding var showJournalEntryOnLaunch: Bool
     @State private var showDreamEntry = false
@@ -52,4 +53,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .modelContainer(for: [Dream.self, Alarm.self], inMemory: true)
+        .environmentObject(ThemeSettings())
 }

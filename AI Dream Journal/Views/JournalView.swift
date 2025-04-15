@@ -248,6 +248,7 @@ struct DreamEntryView: View {
                     Text(tag)
                         .font(.caption)
                         .foregroundColor(.blue)
+                        .lineLimit(1)
                     
                     Button {
                         removeTag(tag)
@@ -259,8 +260,11 @@ struct DreamEntryView: View {
                 }
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.blue.opacity(0.1))
+                )
+                .fixedSize(horizontal: true, vertical: false)
             }
         }
     }

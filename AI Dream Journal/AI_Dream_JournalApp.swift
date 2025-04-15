@@ -8,9 +8,20 @@
 import SwiftData
 import SwiftUI
 
+// Custom AppStorage key for theme preferences
+enum AppStorageKeys {
+    static let darkModeEnabled = "darkModeEnabled"
+}
+
+// App theme settings
+class ThemeSettings: ObservableObject {
+    @AppStorage(AppStorageKeys.darkModeEnabled) var darkModeEnabled = false
+}
+
 @main
 struct AI_Dream_JournalApp: App {
     @State private var showJournalEntryOnLaunch = false
+    @StateObject private var themeSettings = ThemeSettings()
     
     init() {
         setupNotifications()
@@ -36,6 +47,8 @@ struct AI_Dream_JournalApp: App {
                 .onAppear {
                     handleLaunchFromNotification()
                 }
+                .preferredColorScheme(themeSettings.darkModeEnabled ? .dark : .light)
+                .environmentObject(themeSettings)
         }
         .modelContainer(sharedModelContainer)
     }

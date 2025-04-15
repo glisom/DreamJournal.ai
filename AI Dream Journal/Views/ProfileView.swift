@@ -12,9 +12,18 @@ struct ProfileView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var dreams: [Dream]
     @Query private var alarms: [Alarm]
+    @EnvironmentObject private var themeSettings: ThemeSettings
     
     @State private var showPaywall = false
     @State private var isPremiumUser = false // This would be stored in UserDefaults or a more secure method in a real app
+    
+    // Create a binding for the dark mode toggle
+    private var themeSettingsBinding: Binding<Bool> {
+        Binding(
+            get: { themeSettings.darkModeEnabled },
+            set: { themeSettings.darkModeEnabled = $0 }
+        )
+    }
     
     var body: some View {
         NavigationView {
@@ -61,7 +70,8 @@ struct ProfileView: View {
                 
                 // Settings section
                 Section(header: Text("Settings")) {
-                    Toggle("Dark Mode", isOn: .constant(false)) // This would use AppStorage in a real app
+                    // Use the ThemeSettings environment object for the dark mode toggle
+                    Toggle("Dark Mode", isOn: themeSettingsBinding)
                     Toggle("Notifications", isOn: .constant(true))
                     
                     if !isPremiumUser {
